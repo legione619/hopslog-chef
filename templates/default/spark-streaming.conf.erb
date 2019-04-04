@@ -1,0 +1,67 @@
+input {
+  beats {
+    #host => "<%= @my_ip %>" 
+    port => <%= node['logstash']['beats']['spark_port'] %>
+  }
+}
+
+filter {
+  mutate {
+  add_field => [ "project", "" ]
+  }
+  mutate {
+  add_field => [ "jobname", "" ]
+  }
+  mutate {
+  add_field => [ "jobid", ""]
+  }
+  mutate {
+  add_field => [ "application", ""]
+  }
+
+  grok {
+    match => {"message" => "(?<templogdate>%{YEAR}-%{MONTHNUM2}-%{MONTHDAY} %{HOUR}:%{MINUTE}:%{SECOND}.%{NONNEGINT}) %{LOGLEVEL:priority} %{DATA:jobinfo} %{DATA:logger_name}: %{GREEDYDATA:log_message}"}
+  }
+  
+  #Ignore failed parse enties. Grok filter has been tested with http://grokconstructor.appspot.com
+  if "_grokparsefailure" in [tags] {
+    drop { }
+  }
+
+  mutate {
+    split => ["jobinfo", ","]
+  }
+
+  date {
+    match  => [ "templogdate", ISO8601 ]
+    target => "logdate"
+  }
+  mutate {
+     copy => { "[beat][hostname]" => "host" }
+  }
+
+  mutate {
+    replace => [ "project", "%{[jobinfo][0]}"]
+  }
+  mutate {
+    replace => [ "jobname", "%{[jobinfo][1]}"]
+  }
+  mutate {
+    replace => [ "jobid", "%{[jobinfo][2]}"]
+  }
+  mutate {
+    replace => [ "application", "%{[jobinfo][3]}"]
+  }
+
+  mutate {
+    remove_field => [ "message", "source" , "templogdate", "prospector", "beat", "jobinfo"]
+  }
+
+}
+
+output {
+  elasticsearch {
+    hosts => ["<%= @elastic_addr %>"]
+    index => "%{project}_logs-%{+YYYY.MM.dd}"
+  }
+}
