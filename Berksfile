@@ -5,11 +5,11 @@ metadata
 
 cookbook 'java'
 
-cookbook 'kagent', github: "giabbo79/kagent-chef", branch: "master"
-cookbook 'elastic', github: "giabbo79/elasticsearch-chef", branch: "master"
-cookbook 'kkafka', github: "giabbo79/kafka-cookbook", branch: "master"
-cookbook 'conda', github: "giabbo79/conda-chef", branch: "master"
-cookbook 'hops', github: "giabbo79/hops-hadoop-chef", branch: "master"
+cookbook 'kagent', github: "giabbo79/kagent-chef", branch: "1.0"
+cookbook 'elastic', github: "giabbo79/elasticsearch-chef", branch: "1.0"
+cookbook 'kkafka', github: "giabbo79/kafka-cookbook", branch: "1.0"
+cookbook 'conda', github: "giabbo79/conda-chef", branch: "1.0"
+cookbook 'hops', github: "giabbo79/hops-hadoop-chef", branch: "1.0"
 
 cookbook 'elasticsearch', '~> 4.0.0'
 

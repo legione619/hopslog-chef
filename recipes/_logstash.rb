@@ -14,14 +14,46 @@ template"#{node['logstash']['base_dir']}/config/spark-streaming.conf" do
   })
 end
 
-template"#{node['logstash']['base_dir']}/config/serving.conf" do
-  source "serving.conf.erb"
+template"#{node['logstash']['base_dir']}/config/beamjobserver.conf" do
+  source "beamjobserver.conf.erb"
+  owner node['hopslog']['user']
+  group node['hopslog']['group']
+  mode 0655
+  variables({
+     :my_private_ip => my_private_ip,
+     :elastic_addr => elastic
+  })
+end
+
+template"#{node['logstash']['base_dir']}/config/beamsdkworker.conf" do
+  source "beamsdkworker.conf.erb"
+  owner node['hopslog']['user']
+  group node['hopslog']['group']
+  mode 0655
+  variables({
+     :my_private_ip => my_private_ip,
+     :elastic_addr => elastic
+  })
+end
+
+template"#{node['logstash']['base_dir']}/config/tf_serving.conf" do
+  source "tf_serving.conf.erb"
   owner node['hopslog']['user']
   group node['hopslog']['group']
   mode 0655
   variables({ 
      :elastic_addr => elastic
   })
+end
+
+template"#{node['logstash']['base_dir']}/config/sklearn_serving.conf" do
+  source "sklearn_serving.conf.erb"
+  owner node['hopslog']['user']
+  group node['hopslog']['group']
+  mode 0655
+  variables({
+                :elastic_addr => elastic
+            })
 end
 
 template"#{node['logstash']['base_dir']}/config/kagent.conf" do
@@ -55,6 +87,11 @@ template"#{node['logstash']['base_dir']}/bin/stop-logstash.sh" do
   mode 0750
 end
 
+
+deps = ""
+if exists_local("elastic", "default") 
+  deps = "elasticsearch.service"
+end  
 service_name="logstash"
 
 service service_name do
@@ -75,6 +112,9 @@ template systemd_script do
   owner "root"
   group "root"
   mode 0754
+  variables({
+            :deps => deps
+           })
 if node['services']['enabled'] == "true"
   notifies :enable, resources(:service => service_name)
 end

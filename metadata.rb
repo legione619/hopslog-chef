@@ -4,7 +4,7 @@ name             "hopslog"
 license          "Apache v2.0"
 description      "Installs/Configures Logstash and Kibana for Hopsworks"
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version          "0.10.0"
+version          "1.0.0"
 source_url       "https://github.com/hopshadoop/hopslog-chef"
 
 %w{ ubuntu debian centos }.each do |os|
@@ -40,12 +40,28 @@ attribute "logstash/beats/spark_port",
           :description => "Filebeat port for spark streaming logs",
           :type => "string"
 
-attribute "logstash/beats/serving_port",
-          :description => "Filebeat port for Tfserving logs",
+attribute "logstash/beats/beamjobserverlocal_port",
+          :description => "Filebeat port for beam flink job server in jupyter",
+          :type => "string"
+
+attribute "logstash/beats/beamjobservercluster_port",
+          :description => "Filebeat port for beam flink job server in YARN",
+          :type => "string"
+
+attribute "logstash/beats/beamsdkworker_port",
+          :description => "Filebeat port for beam flink sdk worker (boot)",
+          :type => "string"
+
+attribute "logstash/beats/serving_tf_port",
+          :description => "Filebeat port for serving tf logs",
           :type => "string"
 
 attribute "logstash/beats/kagent_port",
           :description => "Filebeat port for kagent logs",
+          :type => "string"
+
+attribute "logstash/beats/serving_sklearn_port",
+          :description => "Filebeat port for serving sklearn logs",
           :type => "string"
 
 attribute "kibana/url",
@@ -70,6 +86,22 @@ attribute "filebeat/version",
 
 attribute "filebeat/spark_read_logs",
           :description => "Path to log files read by filebeat for spark (e.g., /srv/hops/domain1/logs/*.log)",
+          :type => "string"
+
+attribute "filebeat/beamjobservercluster_logs",
+          :description => "Path to log files read by filebeat for beam job server in YARN",
+          :type => "string"
+
+attribute "filebeat/beamjobserverlocal_logs",
+          :description => "Path to log files read by filebeat for beam job server in local mode (Jupyter)",
+          :type => "string"
+
+attribute "filebeat/beamsdkworker_logs",
+          :description => "Path to log files read by filebeat for beam sdk worker in YARN",
+          :type => "string"
+
+attribute "filebeat/beam_logs",
+          :description => "List of beam services to log",
           :type => "string"
 
 attribute "filebeat/skip",
