@@ -1,7 +1,6 @@
 my_private_ip = my_private_ip()
 
-
-elastic = private_recipe_ip("elastic", "default") + ":#{node['elastic']['port']}"
+elastic_addrs = all_elastic_urls_str()
 
 template"#{node['logstash']['base_dir']}/config/spark-streaming.conf" do
   source "spark-streaming.conf.erb"
@@ -10,7 +9,7 @@ template"#{node['logstash']['base_dir']}/config/spark-streaming.conf" do
   mode 0655
   variables({ 
      :my_private_ip => my_private_ip,
-     :elastic_addr => elastic
+     :elastic_addr => elastic_addrs
   })
 end
 
@@ -21,7 +20,7 @@ template"#{node['logstash']['base_dir']}/config/beamjobserver.conf" do
   mode 0655
   variables({
      :my_private_ip => my_private_ip,
-     :elastic_addr => elastic
+     :elastic_addr => elastic_addrs
   })
 end
 
@@ -32,7 +31,7 @@ template"#{node['logstash']['base_dir']}/config/beamsdkworker.conf" do
   mode 0655
   variables({
      :my_private_ip => my_private_ip,
-     :elastic_addr => elastic
+     :elastic_addr => elastic_addrs
   })
 end
 
@@ -42,7 +41,7 @@ template"#{node['logstash']['base_dir']}/config/tf_serving.conf" do
   group node['hopslog']['group']
   mode 0655
   variables({ 
-     :elastic_addr => elastic
+     :elastic_addr => elastic_addrs
   })
 end
 
@@ -52,7 +51,7 @@ template"#{node['logstash']['base_dir']}/config/sklearn_serving.conf" do
   group node['hopslog']['group']
   mode 0655
   variables({
-                :elastic_addr => elastic
+                :elastic_addr => elastic_addrs
             })
 end
 
@@ -62,7 +61,7 @@ template"#{node['logstash']['base_dir']}/config/kagent.conf" do
   group node['hopslog']['group']
   mode 0655
   variables({ 
-     :elastic_addr => elastic
+     :elastic_addr => elastic_addrs
   })
 end
 
@@ -133,7 +132,7 @@ if node['kagent']['enabled'] == "true"
    end
 end
 
-if node['install']['upgrade'] == "true"
+if conda_helpers.is_upgrade
   kagent_config "#{service_name}" do
     action :systemd_reload
   end
