@@ -3,7 +3,7 @@ source 'https://supermarket.chef.io'
 
 metadata
 
-cookbook 'java'
+cookbook 'java', '= 7.0.0'
 
 cookbook 'kagent', github: "giabbo79/kagent-chef", branch: "1.0"
 cookbook 'elastic', github: "giabbo79/elasticsearch-chef", branch: "1.0"
