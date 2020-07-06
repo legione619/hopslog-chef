@@ -1,8 +1,9 @@
 private_ip = my_private_ip()
 
-logstash_beamjobservercluster = private_recipe_ip("hopslog", "default") + ":#{node['logstash']['beats']['beamjobservercluster_port']}"
-logstash_beamjobserverlocal = private_recipe_ip("hopslog", "default") + ":#{node['logstash']['beats']['beamjobserverlocal_port']}"
-logstash_beamsdkworker = private_recipe_ip("hopslog", "default") + ":#{node['logstash']['beats']['beamsdkworker_port']}"
+logstash_fqdn = consul_helper.get_service_fqdn("logstash")
+logstash_beamjobservercluster = logstash_fqdn + ":#{node['logstash']['beats']['beamjobservercluster_port']}"
+logstash_beamjobserverlocal = logstash_fqdn + ":#{node['logstash']['beats']['beamjobserverlocal_port']}"
+logstash_beamsdkworker = logstash_fqdn + ":#{node['logstash']['beats']['beamsdkworker_port']}"
 
 file "#{node['filebeat']['base_dir']}/filebeat.xml" do
   action :delete
@@ -46,9 +47,14 @@ node["filebeat"]["beam_logs"].each do |beam_log|
       owner beamlogs_owner
       group beamlogs_group
       mode 0655
+      multiline_pattern = '\'^\[\''
+      if beam_log.include? "beamsdkworker"
+        multiline_pattern = '\'[0-9]{4}\/[0-9]{2}\/[0-9]{2}\''
+      end
       variables({
                     :paths => log_glob,
-                    :multiline => false,
+                    :multiline => true,
+                    :multiline_pattern => multiline_pattern,
                     :my_private_ip => private_ip,
                     :logstash_endpoint => logstash_endpoint,
                     :log_name => "#{beam_log}"

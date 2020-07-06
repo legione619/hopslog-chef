@@ -4,16 +4,19 @@ name             "hopslog"
 license          "Apache v2.0"
 description      "Installs/Configures Logstash and Kibana for Hopsworks"
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version          "1.2.0"
+version          "1.3.0"
 source_url       "https://github.com/hopshadoop/hopslog-chef"
 
 %w{ ubuntu debian centos }.each do |os|
   supports os
 end
 
-depends 'java'
+depends 'java', '~> 7.0.0'
+depends 'elasticsearch', '~> 4.0.0'
 depends 'kagent'
 depends 'elastic'
+depends 'kkafka'
+depends 'conda'
 depends 'hops'
 
 recipe "hopslog::install", "Installs Logstash and Kibana Server"
@@ -62,6 +65,10 @@ attribute "logstash/beats/kagent_port",
 
 attribute "logstash/beats/serving_sklearn_port",
           :description => "Filebeat port for serving sklearn logs",
+          :type => "string"
+
+attribute "logstash/beats/python_jobs_port",
+          :description => "Filebeat port for python jobs logs",
           :type => "string"
 
 attribute "kibana/url",
