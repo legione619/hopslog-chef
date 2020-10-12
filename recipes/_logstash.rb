@@ -1,15 +1,15 @@
-my_private_ip = my_private_ip()
-
 elastic_addrs = all_elastic_urls_str()
 
+crypto_dir = x509_helper.get_crypto_dir(node['hopslog']['user'])
+hops_ca = "#{crypto_dir}/#{x509_helper.get_hops_ca_bundle_name()}"
 template"#{node['logstash']['base_dir']}/config/spark-streaming.conf" do
   source "spark-streaming.conf.erb"
   owner node['hopslog']['user']
   group node['hopslog']['group']
   mode 0655
-  variables({ 
-     :my_private_ip => my_private_ip,
-     :elastic_addr => elastic_addrs
+  variables({
+     :elastic_addr => elastic_addrs,
+     :hops_ca => hops_ca
   })
 end
 
@@ -19,8 +19,8 @@ template"#{node['logstash']['base_dir']}/config/beamjobserver.conf" do
   group node['hopslog']['group']
   mode 0655
   variables({
-     :my_private_ip => my_private_ip,
-     :elastic_addr => elastic_addrs
+     :elastic_addr => elastic_addrs,
+     :hops_ca => hops_ca
   })
 end
 
@@ -30,8 +30,8 @@ template"#{node['logstash']['base_dir']}/config/beamsdkworker.conf" do
   group node['hopslog']['group']
   mode 0655
   variables({
-     :my_private_ip => my_private_ip,
-     :elastic_addr => elastic_addrs
+     :elastic_addr => elastic_addrs,
+     :hops_ca => hops_ca
   })
 end
 
@@ -40,8 +40,9 @@ template"#{node['logstash']['base_dir']}/config/tf_serving.conf" do
   owner node['hopslog']['user']
   group node['hopslog']['group']
   mode 0655
-  variables({ 
-     :elastic_addr => elastic_addrs
+  variables({
+     :elastic_addr => elastic_addrs,
+     :hops_ca => hops_ca
   })
 end
 
@@ -51,8 +52,9 @@ template"#{node['logstash']['base_dir']}/config/sklearn_serving.conf" do
   group node['hopslog']['group']
   mode 0655
   variables({
-                :elastic_addr => elastic_addrs
-            })
+      :elastic_addr => elastic_addrs,
+      :hops_ca => hops_ca
+  })
 end
 
 template"#{node['logstash']['base_dir']}/config/kube_jobs.conf" do
@@ -61,18 +63,20 @@ template"#{node['logstash']['base_dir']}/config/kube_jobs.conf" do
   group node['hopslog']['group']
   mode 0655
   variables({
-                :elastic_addr => elastic_addrs
+                :elastic_addr => elastic_addrs,
+                :hops_ca => hops_ca
             })
 end
 
-template"#{node['logstash']['base_dir']}/config/kagent.conf" do
-  source "kagent.conf.erb"
+template"#{node['logstash']['base_dir']}/config/jupyter.conf" do
+  source "jupyter.conf.erb"
   owner node['hopslog']['user']
   group node['hopslog']['group']
   mode 0655
-  variables({ 
-     :elastic_addr => elastic_addrs
-  })
+  variables({
+                :elastic_addr => elastic_addrs,
+                :hops_ca => hops_ca
+            })
 end
 
 template"#{node['logstash']['base_dir']}/config/pipelines.yml" do
@@ -87,9 +91,6 @@ template"#{node['logstash']['base_dir']}/bin/start-logstash.sh" do
   owner node['hopslog']['user']
   group node['hopslog']['group']
   mode 0750
-  variables({ 
-     :my_private_ip => my_private_ip
-  })
 end
 
 template"#{node['logstash']['base_dir']}/bin/stop-logstash.sh" do
@@ -101,9 +102,9 @@ end
 
 
 deps = ""
-if exists_local("elastic", "default") 
+if exists_local("elastic", "default")
   deps = "elasticsearch.service"
-end  
+end
 service_name="logstash"
 
 service service_name do
@@ -114,7 +115,7 @@ end
 
 case node['platform_family']
 when "rhel"
-  systemd_script = "/usr/lib/systemd/system/#{service_name}.service" 
+  systemd_script = "/usr/lib/systemd/system/#{service_name}.service"
 when "debian"
   systemd_script = "/lib/systemd/system/#{service_name}.service"
 end
@@ -135,10 +136,10 @@ end
 
 kagent_config service_name do
   action :systemd_reload
-end  
+end
 
 
-if node['kagent']['enabled'] == "true" 
+if node['kagent']['enabled'] == "true"
    kagent_config service_name do
      service "ELK"
      log_file "#{node['logstash']['base_dir']}/logstash.log"
@@ -170,9 +171,6 @@ template "#{node['logstash']['consul_dir']}/logstash-health.sh" do
   owner node['hopslog']['user']
   group node['hopslog']['group']
   mode 0755
-  variables({
-    :my_private_ip => my_private_ip
-  })
 end
 
 consul_service "Registering Logstash with Consul" do

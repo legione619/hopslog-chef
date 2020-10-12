@@ -6,6 +6,7 @@ include_attribute "kagent"
 default['hopslog']['user']                      = node['install']['user'].empty? ? node['elastic']['user'] : node['install']['user']
 default['hopslog']['group']                     = node['install']['user'].empty? ? node['elastic']['group'] : node['install']['user']
 default['hopslog']['dir']                       = node['install']['dir'].empty? ? "/srv" : node['install']['dir']
+default['hopslog']['user-home']                 = "/home/#{node['hopslog']['user']}"
 
 #
 # Logstash
@@ -14,12 +15,12 @@ default['logstash']['version']                               = "7.2.0"
 default['logstash']['url']                                   = "#{node['download_url']}/logstash-oss-#{node['logstash']['version']}.tar.gz"
 default['logstash']['beats']['spark_port']                   = "5044"
 default['logstash']['beats']['serving_tf_port']              = "5045"
-default['logstash']['beats']['kagent_port']                  = "5046"
 default['logstash']['beats']['serving_sklearn_port']         = "5047"
 default['logstash']['beats']['beamjobserverlocal_port']      = "5048"
 default['logstash']['beats']['beamjobservercluster_port']    = "5049"
 default['logstash']['beats']['beamsdkworker_port']           = "5050"
 default['logstash']['beats']['python_jobs_port']             = "5051"
+default['logstash']['beats']['jupyter_port']                 = "5052"
 default['logstash']['http']['port']                          = "9600"
 
 default['logstash']['systemd']                  = "true"
@@ -65,8 +66,6 @@ default['hopslog']['public_ips']          = ['10.0.2.15']
 # Kibana Opendistro Security plugin
 default['kibana']['opendistro_security']['url']                                   = "#{node['download_url']}/opendistro_security_kibana_plugin-#{node['elastic']['opendistro']['version']}.zip"
 default['kibana']['opendistro_security']['https']['enabled']                      = "true"
-default['kibana']['opendistro_security']['ssl']['certificate']                    = node["kagent"]["certs"]["elastic_host_certificate"]
-default['kibana']['opendistro_security']['ssl']['key']                            = node["kagent"]["certs"]["host_key"]
 default['kibana']['opendistro_security']['multitenancy']['global']['enabled']     = "false"
 default['kibana']['opendistro_security']['multitenancy']['private']['enabled']    = "true"
 default['kibana']['opendistro_security']['cookie']['ttl']                         = node['elastic']['opendistro_security']['jwt']['exp_ms'].to_i
