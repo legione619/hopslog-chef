@@ -4,7 +4,7 @@ name             "hopslog"
 license          "Apache v2.0"
 description      "Installs/Configures Logstash and Kibana for Hopsworks"
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version          "2.1.0"
+version          "2.2.0"
 source_url       "https://github.com/hopshadoop/hopslog-chef"
 
 %w{ ubuntu debian centos }.each do |os|
@@ -60,12 +60,8 @@ attribute "logstash/beats/beamsdkworker_port",
           :description => "Filebeat port for beam flink sdk worker (boot)",
           :type => "string"
 
-attribute "logstash/beats/serving_tf_port",
-          :description => "Filebeat port for serving tf logs",
-          :type => "string"
-
-attribute "logstash/beats/serving_sklearn_port",
-          :description => "Filebeat port for serving sklearn logs",
+attribute "logstash/beats/serving_port",
+          :description => "Filebeat port for serving logs",
           :type => "string"
 
 attribute "logstash/beats/python_jobs_port",
