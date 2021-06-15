@@ -1,0 +1,18 @@
+service {
+    id = "kibana"
+    name = "kibana"
+    tags = [
+        "kibana"
+    ]
+    port = <%= node['kibana']['port'] %> 
+    check = {
+        id = "kibana-check"
+        name = "Health check for Kibana"
+        tcp = "localhost:<%= node['kibana']['port'] %>"
+#        http = "https://localhost:<%= node['kibana']['port'] %>/status"
+        interval = "20s"
+        timeout = "2s"
+#        status = "passing"
+#        tls_skip_verify = true
+    }
+}

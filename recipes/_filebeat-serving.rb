@@ -3,31 +3,32 @@
 #
 
 my_private_ip = my_private_ip()
+logstash_fqdn = consul_helper.get_service_fqdn("logstash")
+logstash_service_endpoint = logstash_fqdn + ":#{node['logstash']['beats']['serving_port']}"
+
+tf_serving_log_name = "tf_serving"
+sklearn_serving_log_name = "sklearn_serving"
 
 file "#{node['filebeat']['base_dir']}/filebeat.xml" do
   action :delete
 end
 
-log_glob = "#{node['hopslog']['dir']}/staging/serving/**/*.log"
-if node.attribute?("hopsworks")
-  if node['hopsworks'].attribute?("staging_dir")
-    log_glob = "#{node['hopsworks']['staging_dir']}/serving/**/*.log"
-  end
+tf_log_glob = "#{node['hopslog']['dir']}/staging/serving/**/*.log"
+sk_log_glob = "#{node['hopslog']['dir']}/staging/serving/**/*-application.log"
+if node.attribute?("hopsworks") && node['hopsworks'].attribute?("staging_dir")
+    tf_log_glob = "#{node['hopsworks']['staging_dir']}/serving/**/*.log"
+    sk_log_glob = "#{node['hopsworks']['staging_dir']}/serving/**/*.log"
 end
 
 
-serving_user = node['install']['user'].empty? ? "serving" : node['install']['user']
-serving_group = node['install']['user'].empty? ? "serving" : node['install']['user']
-
-
-if node.attribute?("serving")
-  if node['serving'].attribute?("user")
-    serving_user = node['serving']['user']
-  end
-  if node['serving'].attribute?("group")
-    serving_group = node['serving']['group']
-  end
+if node.attribute?("hopsworks") && node['hopsworks'].attribute?("user")
+  serving_user = node['hopsworks']['user']
+  serving_group = node['hopsworks']['user']
+else
+  serving_user = "glassfish"
+  serving_group = "glassfish"
 end
+
 
 group node['hopslog']['group'] do
   action :modify
@@ -40,19 +41,19 @@ end
 # TF Serving Configuration
 #
 
-logstash_tf_endpoint = private_recipe_ip("hopslog", "default") + ":#{node['logstash']['beats']['serving_tf_port']}"
-
 template"#{node['filebeat']['base_dir']}/filebeat-tf-serving.yml" do
   source "filebeat.yml.erb"
   user serving_user
   group serving_group
   mode 0655
   variables({ 
-    :paths => log_glob, 
+    :paths => tf_log_glob, 
     :multiline => false,
+    :fields => true,
+    :model_server => "tensorflow_serving",
     :my_private_ip => my_private_ip,
-    :logstash_endpoint => logstash_tf_endpoint,
-    :log_name => "tf_serving"
+    :logstash_endpoint => logstash_service_endpoint,
+    :log_name => tf_serving_log_name
   })
 end
 
@@ -131,6 +132,8 @@ end
 
 
 if conda_helpers.is_upgrade
+  # Change ownership of logs and data
+  fix_serving_beat_ownership(tf_serving_log_name, serving_user, serving_group)
   kagent_config "#{tf_serving_service_name}" do
     action :systemd_reload
   end
@@ -140,19 +143,19 @@ end
 # SkLearn Serving Configuration
 #
 
-logstash_sklearn_endpoint = private_recipe_ip("hopslog", "default") + ":#{node['logstash']['beats']['serving_sklearn_port']}"
-
 template"#{node['filebeat']['base_dir']}/filebeat-sklearn-serving.yml" do
   source "filebeat.yml.erb"
   user serving_user
   group serving_group
   mode 0655
   variables({
-                :paths => log_glob,
+                :paths => sk_log_glob,
                 :multiline => false,
+                :fields => true,
+                :model_server => "flask",
                 :my_private_ip => my_private_ip,
-                :logstash_endpoint => logstash_sklearn_endpoint,
-                :log_name => "sklearn_serving"
+                :logstash_endpoint => logstash_service_endpoint,
+                :log_name => sklearn_serving_log_name
             })
 end
 
@@ -224,6 +227,7 @@ end
 
 
 if conda_helpers.is_upgrade
+  fix_serving_beat_ownership(sklearn_serving_log_name, serving_user, serving_group)
   kagent_config "#{sklearn_serving_service_name}" do
     action :systemd_reload
   end

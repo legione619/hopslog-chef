@@ -4,17 +4,21 @@ name             "hopslog"
 license          "Apache v2.0"
 description      "Installs/Configures Logstash and Kibana for Hopsworks"
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version          "1.2.0"
+version          "2.2.0"
 source_url       "https://github.com/hopshadoop/hopslog-chef"
 
 %w{ ubuntu debian centos }.each do |os|
   supports os
 end
 
-depends 'java'
+depends 'java', '~> 7.0.0'
+depends 'elasticsearch', '~> 4.0.0'
 depends 'kagent'
 depends 'elastic'
+depends 'kkafka'
+depends 'conda'
 depends 'hops'
+depends 'consul'
 
 recipe "hopslog::install", "Installs Logstash and Kibana Server"
 recipe "hopslog::default", "configures Logstash and Kibana Server"
@@ -26,6 +30,10 @@ attribute "hopslog/user",
 
 attribute "hopslog/group",
           :description => "Group to run Kibana server as",
+          :type => "string"
+
+attribute "hopslog/user-home",
+          :description => "Home directory of hopslog user",
           :type => "string"
 
 attribute "logstash/url",
@@ -52,16 +60,16 @@ attribute "logstash/beats/beamsdkworker_port",
           :description => "Filebeat port for beam flink sdk worker (boot)",
           :type => "string"
 
-attribute "logstash/beats/serving_tf_port",
-          :description => "Filebeat port for serving tf logs",
+attribute "logstash/beats/serving_port",
+          :description => "Filebeat port for serving logs",
           :type => "string"
 
-attribute "logstash/beats/kagent_port",
-          :description => "Filebeat port for kagent logs",
+attribute "logstash/beats/python_jobs_port",
+          :description => "Filebeat port for python jobs logs",
           :type => "string"
 
-attribute "logstash/beats/serving_sklearn_port",
-          :description => "Filebeat port for serving sklearn logs",
+attribute "logstash/beats/jupyter_port",
+          :description => "Filebeat port for jupyter server logs",
           :type => "string"
 
 attribute "kibana/url",
