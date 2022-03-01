@@ -4,7 +4,7 @@ name             "hopslog"
 license          "Apache v2.0"
 description      "Installs/Configures Logstash and Kibana for Hopsworks"
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version          "2.3.0"
+version          "2.5.0"
 source_url       "https://github.com/hopshadoop/hopslog-chef"
 
 %w{ ubuntu debian centos }.each do |os|
@@ -103,3 +103,19 @@ attribute "hopslog/private_ips",
 attribute "hopslog/public_ips",
           :description => "Set ip addresses",
           :type => "array"
+
+attribute "logstash/managed_cloud/batch_delay",
+          :description => "the batch delay to send logs to the managed cloud platform",
+          :type => "string"
+
+attribute "logstash/managed_cloud/batch_size",
+          :description => "the batch size to send logs to the managed cloud platform",
+          :type => "string"
+
+attribute "logstash/managed_cloud/max_size",
+          :description => "the log message max size to send logs to the managed cloud platform",
+          :type => "string"
+
+attribute "logstash/pipeline/workers",
+          :description => "Number of threads for each logstash pipeline - default 1",
+          :type => "string"
